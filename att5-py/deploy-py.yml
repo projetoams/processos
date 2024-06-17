@@ -1,0 +1,38 @@
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: Update and upgrade apt packages
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install dependencies
+      apt:
+        name: 
+          - postgresql
+          - python3
+          - python3-pip
+          - python3-venv
+        state: present
+
+    - name: Create a directory for the script
+      file:
+        path: /opt/backup_script
+        state: directory
+
+    - name: Create a Python virtual environment
+      command: python3 -m venv /opt/backup_script/venv
+
+    - name: Install boto3 in the virtual environment
+      command: /opt/backup_script/venv/bin/pip install boto3
+
+    - name: Upload the backup script to the server
+      copy:
+        src: files/app.py
+        dest: /opt/backup_script/app.py
+        mode: '0755'
+
+    - name: Run the backup script
+      command: /opt/backup_script/venv/bin/python /opt/backup_script/app.py
+

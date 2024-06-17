@@ -1,0 +1,29 @@
+---
+- name: Deploy PHP Docker application to EC2 instance
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Copy PHP files to remote host
+      copy:
+        src: ./docker-php/
+        dest: /home/ubuntu/docker-php/
+      become_user: ubuntu
+
+    - name: Stop all running Docker containers
+      shell: sudo docker stop $(sudo docker ps -q)
+      ignore_errors: yes
+      become_user: ubuntu
+
+    - name: Clear all unused Docker resources
+      command: sudo docker system prune --all --force
+      ignore_errors: yes
+      become_user: ubuntu
+
+    - name: Build Docker image
+      command: sudo docker build -t php-hello-world /home/ubuntu/docker-php/
+      become_user: ubuntu
+
+    - name: Run Docker container
+      command: sudo docker run -d -p 80:80 php-hello-world
+      become_user: ubuntu
